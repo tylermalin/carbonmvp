@@ -5,6 +5,9 @@ import TopNavigation from "./components/TopNavigation";
 export const metadata: Metadata = {
   title: "Malama CO2.0 - Universal Carbon Market Operating System",
   description: "Streamlined carbon project development and DMRV platform",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -14,9 +17,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
       <body>
         <TopNavigation />
         {children}
