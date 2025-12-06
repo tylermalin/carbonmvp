@@ -127,11 +127,16 @@ Visit `http://localhost:3000` to see the application.
 - `GET /api/projects/:id` - Get project details
 - `POST /api/projects/:id/activate` - Activate project (unlock deliverables)
 - `GET /api/projects/:id/generate-pdd` - Generate PDD document
+- `POST /api/projects/:id/update-kyc` - Update KYC status (simulate verification)
+- `POST /api/projects/:id/update-kyb` - Update KYB status (simulate verification)
+- `POST /api/projects/:id/update-info` - Update project additional information
+- `POST /api/projects/:id/activate-sensors` - Activate sensor network
 
 ### Analysis
 - `POST /api/analysis/estimate` - Calculate carbon potential estimates
 
 ### Sensors & Credits
+- `GET /api/sensors/:projectId` - Get all sensors for a project
 - `POST /api/sensors/register` - Register sensor
 - `GET /api/data/:sensorId/stream` - Get live sensor data
 - `POST /api/credits/:projectId/issue` - Issue carbon credits
