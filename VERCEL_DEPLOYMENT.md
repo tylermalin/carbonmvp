@@ -176,11 +176,21 @@ After deploying the backend, update the `NEXT_PUBLIC_API_URL` environment variab
 ### CORS Issues
 If you see CORS errors:
 
-1. **Update CORS in `server/index.ts`** - The code has been updated to support dynamic origins
-2. **Set `FRONTEND_URL` environment variable** in Render dashboard with your Vercel URL
-3. **Redeploy backend** after making changes
+1. **Verify backend has redeployed** - Check Render dashboard to ensure latest code is deployed
+2. **Check Render logs** - Look for CORS-related warnings or errors
+3. **Set `FRONTEND_URL` environment variable** in Render dashboard (optional but recommended)
+4. **Manual redeploy** - If auto-deploy didn't work, manually trigger a redeploy in Render
 
-The backend code already includes CORS configuration that will allow your Vercel domain once you set the `FRONTEND_URL` environment variable in Render.
+**Current CORS Configuration:**
+- Allows all `.vercel.app` domains automatically
+- Allows `localhost:3000` for development
+- Handles preflight OPTIONS requests
+- More permissive for MVP (can tighten in production)
+
+**If CORS still fails after redeploy:**
+- Check that Render service is running: `curl https://carbonmvp.onrender.com/health`
+- Verify the origin in browser console matches what's in CORS config
+- Check Render logs for CORS blocking messages
 
 ### Database Connection Issues
 - Verify `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are correct

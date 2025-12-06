@@ -5,7 +5,9 @@ import { initializeDatabase } from './db/libsql-client';
 import apiRoutes from './routes/api';
 import analysisRoutes from './routes/analysis';
 
+// Load environment variables - try .env.local first, then fallback to .env
 dotenv.config({ path: '.env.local' });
+dotenv.config(); // Fallback to .env if .env.local doesn't exist
 
 const app = express();
 const PORT = process.env.SERVER_PORT || 3001;
