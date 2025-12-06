@@ -6,21 +6,24 @@ A full-stack MVP for the Malama CO2.0 Universal Carbon Market Operating System, 
 
 - **4-Step Carbon Potential Analysis Flow**
   - Account creation with KYC/KYB
-  - Interactive map-based project boundary definition
-  - Instant carbon removal, revenue, and cost estimates
+  - Interactive map-based project boundary definition with auto-calculated hectares
+  - Instant carbon removal, revenue, and cost estimates (30-second analysis)
   - Pro account upgrade and project activation
 
 - **Project Management**
-  - Dynamic Project Design Document (PDD) generation
-  - Sensor deployment planning and activation workflow
-  - Financial package generation
-  - Live DMRV sensor data visualization
+  - Dynamic Project Design Document (PDD) generation with ICR compliance
+  - Sensor deployment planning with detailed specifications and pricing
+  - Dynamic financial package generation with NPV, payback period, and risk assessment
+  - Live DMRV sensor data visualization with real-time updates
+  - Sensor network map visualization with satellite view
 
 - **Compliance & Verification**
-  - KYC/KYB status tracking
-  - Deliverable completion status
-  - Sensor activation workflow
-  - Real-time carbon credit tracking
+  - **Taktikal-style KYC Verification**: Multi-step form with document upload, identity verification, and real-time background checks
+  - **Taktikal-style KYB Verification**: Business verification with registration documents, beneficial ownership, and enhanced due diligence
+  - KYC/KYB status tracking with completion workflows
+  - Deliverable completion status with clear next steps
+  - Sensor activation workflow with purchase flow
+  - Real-time carbon credit tracking and issuance
 
 ## Tech Stack
 
@@ -151,14 +154,30 @@ See `db/schema.sql` for the complete schema.
 
 ## Key Features Explained
 
+### Taktikal-Style KYC/KYB Verification
+The platform includes comprehensive multi-step verification forms inspired by Taktikal's API:
+- **KYC Flow**: Personal information → Identity document upload → Real-time verification
+- **KYB Flow**: Business information → Registration documents → Enhanced due diligence
+- Supports 11,000+ government-issued IDs from 190+ countries
+- Real-time identity verification with document authenticity checks
+- Background screening and sanctions/PEP checks
+
 ### KYC/KYB Gating
-Deliverables show "NOT COMPLETE" status until KYC/KYB verification is approved. The system provides clear next steps for developers.
+Deliverables show "NOT COMPLETE" status until KYC/KYB verification is approved. The system provides clear next steps with clickable action buttons for completing verification.
 
 ### Sensor Activation Workflow
-Sensors must be ordered, deployed, geolocated, and validated online before live DMRV data is displayed.
+Sensors must be ordered through the purchase flow, deployed, geolocated, and validated online before live DMRV data is displayed. The sensor network map visualizes all deployed sensors with their status.
 
 ### Dynamic PDD Generation
-Project Design Documents are automatically generated based on project data, technology type, and boundary information.
+Project Design Documents are automatically generated based on project data, technology type, and boundary information. PDDs are ICR-compliant and include all required sections.
+
+### Dynamic Financial Package
+Financial packages are automatically calculated based on project metrics:
+- Revenue projections with credit pricing
+- CAPEX and OPEX breakdowns
+- NPV calculations with discount rates
+- Payback period analysis
+- Risk assessment
 
 ## Contributing
 
