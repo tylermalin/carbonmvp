@@ -395,31 +395,37 @@ router.get('/projects/:id/generate-pdd', async (req, res) => {
       });
 
       if (orgResult.rows.length > 0) {
+        const orgRow = orgResult.rows[0] as any;
         orgData = {
-          legalName: orgResult.rows[0].legal_name,
-          regNumber: orgResult.rows[0].reg_number,
+          legalName: String(orgRow.legal_name || 'Organization'),
+          regNumber: orgRow.reg_number ? String(orgRow.reg_number) : undefined,
         };
       }
     }
 
     // Parse GPS boundary if it's a JSON string
-    let gpsBoundary = project.gps_boundary;
-    if (gpsBoundary && typeof gpsBoundary === 'string') {
-      try {
-        gpsBoundary = JSON.parse(gpsBoundary);
-      } catch (e) {
-        // If parsing fails, keep as string
-        console.warn('Could not parse GPS boundary as JSON, using as string');
+    let gpsBoundary: string | { lat?: number; lng?: number } | undefined = undefined;
+    if (project.gps_boundary) {
+      if (typeof project.gps_boundary === 'string') {
+        try {
+          const parsed = JSON.parse(project.gps_boundary);
+          gpsBoundary = parsed;
+        } catch (e) {
+          // If parsing fails, use as string
+          gpsBoundary = project.gps_boundary;
+        }
+      } else if (typeof project.gps_boundary === 'object') {
+        gpsBoundary = project.gps_boundary as { lat?: number; lng?: number };
       }
     }
 
     // Prepare project data for PDD generation
     const projectData = {
-      projectName: project.name || 'Unnamed Project',
-      orgName: orgData?.legalName || 'Organization',
-      authorizedRepName: undefined, // Can be added later
-      authorizedRepEmail: undefined, // Can be added later
-      techType: project.tech_type || 'Unknown',
+      projectName: String(project.name || 'Unnamed Project'),
+      orgName: String(orgData?.legalName || 'Organization'),
+      authorizedRepName: undefined as string | undefined, // Can be added later
+      authorizedRepEmail: undefined as string | undefined, // Can be added later
+      techType: String(project.tech_type || 'Unknown'),
       hectares: Number(project.hectares) || 0,
       gpsBoundary: gpsBoundary,
       estRemoval: Number(project.est_removal) || 0,
@@ -434,7 +440,14 @@ router.get('/projects/:id/generate-pdd', async (req, res) => {
       console.log('Project data:', JSON.stringify(projectData, null, 2));
       console.log('Org data:', JSON.stringify(orgData, null, 2));
       
-      pddContent = generatePDD(projectData, orgData || undefined);
+      const orgDataTyped: { legalName: string; regNumber?: string } | undefined = orgData 
+        ? {
+            legalName: String(orgData.legalName || 'Organization'),
+            regNumber: orgData.regNumber ? String(orgData.regNumber) : undefined,
+          }
+        : undefined;
+      
+      pddContent = generatePDD(projectData, orgDataTyped);
       
       if (!pddContent || pddContent.length === 0) {
         throw new Error('Generated PDD content is empty');
@@ -658,7 +671,10 @@ router.get('/credits/:projectId', async (req, res) => {
       args: [projectId],
     });
 
-    const totalTonnes = result.rows.reduce((sum, row) => sum + (row.tonnes || 0), 0);
+    const totalTonnes = result.rows.reduce((sum, row) => {
+      const tonnes = Number((row as any).tonnes) || 0;
+      return sum + tonnes;
+    }, 0);
 
     res.json({
       success: true,

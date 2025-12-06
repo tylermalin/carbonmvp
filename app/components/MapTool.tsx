@@ -70,6 +70,9 @@ export default function MapTool({ onBoundaryChange, initialCenter, initialZoom }
     longitude: initialCenter?.[1] || -116.2023,
     latitude: initialCenter?.[0] || 43.6150,
     zoom: initialZoom || 12,
+    bearing: 0,
+    pitch: 0,
+    padding: { top: 0, bottom: 0, left: 0, right: 0 },
   });
   const [hasPolygon, setHasPolygon] = useState(false);
 
@@ -115,7 +118,7 @@ export default function MapTool({ onBoundaryChange, initialCenter, initialZoom }
     const initializeDraw = () => {
       if (drawRef.current) {
         try {
-          map.removeControl(drawRef.current);
+          map.removeControl(drawRef.current as any);
         } catch (e) {
           // Control might not exist yet
         }
@@ -133,7 +136,7 @@ export default function MapTool({ onBoundaryChange, initialCenter, initialZoom }
         defaultMode: 'simple_select',
       });
 
-      map.addControl(draw);
+      map.addControl(draw as any);
       drawRef.current = draw;
 
       // Add event listeners
@@ -157,7 +160,7 @@ export default function MapTool({ onBoundaryChange, initialCenter, initialZoom }
       // Remove draw control
       if (drawRef.current) {
         try {
-          map.removeControl(drawRef.current);
+          map.removeControl(drawRef.current as any);
         } catch (e) {
           // Ignore errors during cleanup
         }
