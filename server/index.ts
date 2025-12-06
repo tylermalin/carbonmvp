@@ -24,6 +24,7 @@ const isVercelOrigin = (origin: string): boolean => {
   return origin.includes('.vercel.app') || origin.includes('localhost:3000');
 };
 
+// CORS configuration - more permissive for MVP
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -33,13 +34,16 @@ app.use(cors({
     if (isVercelOrigin(origin) || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
-      console.warn(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      // For MVP, log but allow (can tighten later)
+      console.log(`CORS allowing origin: ${origin}`);
+      callback(null, true);
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'Content-Type'],
+  maxAge: 86400, // 24 hours
 }));
 app.use(express.json());
 
