@@ -14,7 +14,9 @@ const PORT = process.env.SERVER_PORT || 3001;
 const allowedOrigins = [
   'http://localhost:3000',
   process.env.FRONTEND_URL,
-  'https://carbonmvp.vercel.app', // Update with your actual Vercel URL
+  'https://carbonmvp.vercel.app',
+  'https://carbonmvp-omega.vercel.app', // Actual Vercel deployment URL
+  /^https:\/\/carbonmvp.*\.vercel\.app$/, // Allow all Vercel preview deployments
 ].filter(Boolean); // Remove undefined values
 
 app.use(cors({
@@ -22,13 +24,28 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    // Check exact matches
+    if (allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return allowed === origin;
+      } else if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return false;
+    })) {
+      callback(null, true);
+    } else if (process.env.NODE_ENV === 'development') {
+      // Allow all origins in development
       callback(null, true);
     } else {
+      // In production, log the blocked origin for debugging
+      console.warn(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 
