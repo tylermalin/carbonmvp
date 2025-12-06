@@ -477,6 +477,140 @@ router.get('/projects/:id/generate-pdd', async (req, res) => {
   }
 });
 
+// POST /api/projects/:id/update-kyc - Simulate KYC completion
+router.post('/projects/:id/update-kyc', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Update user KYC status
+    await db.execute({
+      sql: `UPDATE users SET kyc_status = 'APPROVED' 
+            WHERE org_id = (SELECT org_id FROM projects WHERE id = ?)`,
+      args: [id],
+    });
+
+    // Check if both KYC and KYB are now approved, update PDD status
+    const projectResult = await db.execute({
+      sql: `SELECT p.*, o.kyb_status, 
+                   (SELECT kyc_status FROM users WHERE org_id = p.org_id LIMIT 1) as kyc_status
+            FROM projects p
+            JOIN organizations o ON p.org_id = o.id
+            WHERE p.id = ?`,
+      args: [id],
+    });
+
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const project = projectResult.rows[0] as any;
+    const isComplete = project.kyb_status === 'APPROVED' && project.kyc_status === 'APPROVED';
+
+    if (isComplete) {
+      await db.execute({
+        sql: `UPDATE projects SET pdd_completion_status = 'COMPLETE' WHERE id = ?`,
+        args: [id],
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'KYC verification completed',
+      kycStatus: 'APPROVED',
+      pddCompletionStatus: isComplete ? 'COMPLETE' : 'NOT_COMPLETE',
+    });
+  } catch (error: any) {
+    console.error('KYC update error:', error);
+    res.status(500).json({ error: 'KYC update failed', details: error.message });
+  }
+});
+
+// POST /api/projects/:id/update-kyb - Simulate KYB completion
+router.post('/projects/:id/update-kyb', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Update organization KYB status
+    await db.execute({
+      sql: `UPDATE organizations SET kyb_status = 'APPROVED' 
+            WHERE id = (SELECT org_id FROM projects WHERE id = ?)`,
+      args: [id],
+    });
+
+    // Check if both KYC and KYB are now approved, update PDD status
+    const projectResult = await db.execute({
+      sql: `SELECT p.*, o.kyb_status, 
+                   (SELECT kyc_status FROM users WHERE org_id = p.org_id LIMIT 1) as kyc_status
+            FROM projects p
+            JOIN organizations o ON p.org_id = o.id
+            WHERE p.id = ?`,
+      args: [id],
+    });
+
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const project = projectResult.rows[0] as any;
+    const isComplete = project.kyb_status === 'APPROVED' && project.kyc_status === 'APPROVED';
+
+    if (isComplete) {
+      await db.execute({
+        sql: `UPDATE projects SET pdd_completion_status = 'COMPLETE' WHERE id = ?`,
+        args: [id],
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'KYB verification completed',
+      kybStatus: 'APPROVED',
+      pddCompletionStatus: isComplete ? 'COMPLETE' : 'NOT_COMPLETE',
+    });
+  } catch (error: any) {
+    console.error('KYB update error:', error);
+    res.status(500).json({ error: 'KYB update failed', details: error.message });
+  }
+});
+
+// POST /api/projects/:id/update-info - Update project additional info
+router.post('/projects/:id/update-info', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { authorizedRepName, authorizedRepEmail } = req.body;
+
+    // For now, just return success (in real app, would update a users table or project metadata)
+    res.json({
+      success: true,
+      message: 'Project information updated',
+    });
+  } catch (error: any) {
+    console.error('Project info update error:', error);
+    res.status(500).json({ error: 'Update failed', details: error.message });
+  }
+});
+
+// POST /api/projects/:id/activate-sensors - Activate sensor network
+router.post('/projects/:id/activate-sensors', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await db.execute({
+      sql: `UPDATE projects SET sensor_activation_status = 'ACTIVE' WHERE id = ?`,
+      args: [id],
+    });
+
+    res.json({
+      success: true,
+      message: 'Sensor network activated',
+      sensorActivationStatus: 'ACTIVE',
+    });
+  } catch (error: any) {
+    console.error('Sensor activation error:', error);
+    res.status(500).json({ error: 'Sensor activation failed', details: error.message });
+  }
+});
+
 // POST /api/projects/:id/activate - Activate project (unlock deliverables)
 router.post('/projects/:id/activate', async (req, res) => {
   try {
@@ -544,6 +678,39 @@ router.post('/projects/:id/activate', async (req, res) => {
   } catch (error: any) {
     console.error('Project activation error:', error);
     res.status(500).json({ error: 'Project activation failed', details: error.message });
+  }
+});
+
+// GET /api/sensors/:projectId - Get all sensors for a project
+router.get('/sensors/:projectId', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const result = await db.execute({
+      sql: `SELECT id, project_id, serial_num, location, param, 
+                   COALESCE(activation_status, 'PENDING') as activation_status,
+                   geolocation, image_url, validated_at
+            FROM sensors WHERE project_id = ? ORDER BY serial_num`,
+      args: [projectId],
+    });
+
+    res.json({
+      success: true,
+      sensors: result.rows.map((row: any) => ({
+        id: row.id,
+        projectId: row.project_id,
+        serialNum: row.serial_num,
+        location: row.location,
+        param: row.param,
+        activationStatus: row.activation_status,
+        geolocation: row.geolocation ? JSON.parse(row.geolocation) : null,
+        imageUrl: row.image_url,
+        validatedAt: row.validated_at,
+      })),
+    });
+  } catch (error: any) {
+    console.error('Sensor fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch sensors', details: error.message });
   }
 });
 
